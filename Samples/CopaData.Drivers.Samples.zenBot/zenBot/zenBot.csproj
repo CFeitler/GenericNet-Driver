@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,5 +10,9 @@
       <HintPath>..\..\..\..\..\Program Files (x86)\COPA-DATA\zenon 10\DriverFramework\CopaData.Drivers.Contracts.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if not exist &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_10000)DriverExtensions\$(ProjectName)&quot; mkdir &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_10000)DriverExtensions\$(ProjectName)&quot;&#xD;&#xA;copy /y &quot;$(TargetDir)\*.*&quot; &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_10000)DriverExtensions\$(ProjectName)&quot;" />
+  </Target>
 
 </Project>

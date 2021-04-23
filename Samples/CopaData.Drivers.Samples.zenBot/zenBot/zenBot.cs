@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CopaData.Drivers.Contracts;
+using zenBot.BotService;
+using zenBot.Definitions;
+using zenBot.Messages;
 
 namespace zenBot
 {
@@ -9,12 +12,16 @@ namespace zenBot
   {
     private ILogger _logger;
     private IValueCallback _valueCallback;
+    private ChatBot _askBot;
+    private ChatBot _tellBot;
 
     public Task InitializeAsync(ILogger logger, IValueCallback valueCallback, string configFilePath)
     {
       _logger = logger;
       _valueCallback = valueCallback;
       _logger.Info("zenBot driver extension started.");
+      _askBot = new ChatBot(new ZenonQuestions());
+      _tellBot = new ChatBot(new ZenonFacts());
       return Task.CompletedTask;
     }
 
@@ -43,7 +50,9 @@ namespace zenBot
 
     public Task ReadAllAsync()
     {
-      throw new NotImplementedException();
+      var messageAskbot = _askBot.GetAnswer(new zenBotMessage(){Message = "Hello from zenon!"});
+      var messageTellbot = _tellBot.GetAnswer(messageAskbot);
+      return Task.CompletedTask;
     }
 
     public Task<bool> WriteStringAsync(string symbolicAddress, string value, DateTime dateTime, StatusBits statusBits)
