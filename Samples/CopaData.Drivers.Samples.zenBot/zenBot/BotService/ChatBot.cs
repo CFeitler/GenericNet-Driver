@@ -8,16 +8,21 @@ namespace zenBot.BotService
 {
   public class ChatBot
   {
-    public zenBotMessageQueue ZenBotMessageQueue { get; set; }
+    public ZenBotMessageQueue ZenBotMessageQueue { get; set; }
 
-    public ChatBot(ILoopBreaker loopBreaker)
+    public ChatBot(ILoopBreaker loopBreaker, ChatBotConnection chatBotConnection)
     {
-      ZenBotMessageQueue = new zenBotMessageQueue(loopBreaker);
+      ZenBotMessageQueue = new ZenBotMessageQueue(loopBreaker, chatBotConnection);
     }
 
-    public zenBotMessage GetAnswer(zenBotMessage message)
+    public ZenBotMessage GetNewAnswer(ZenBotMessage message)
     {
       ZenBotMessageQueue.SendMessage(message);
+      return ZenBotMessageQueue.GetLastMessage();
+    }
+
+    public ZenBotMessage GetLastAnwer()
+    {
       return ZenBotMessageQueue.GetLastMessage();
     }
   }

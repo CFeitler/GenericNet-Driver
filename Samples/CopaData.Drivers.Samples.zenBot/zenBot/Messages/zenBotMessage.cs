@@ -4,7 +4,7 @@ using System.Text;
 
 namespace zenBot.Messages
 {
-  public class zenBotMessage
+  public class ZenBotMessage
   {
     public string Message { get; set; }
   }
