@@ -45,6 +45,11 @@ namespace zenBot.Messages
       {
         ReceivedAnswers.RemoveAt(0);
       }
+
+      if (SentMessages.Count > QueueSize)
+      {
+        SentMessages.RemoveAt(0);
+      }
     }
 
     

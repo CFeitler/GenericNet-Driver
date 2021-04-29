@@ -40,7 +40,7 @@ namespace zenBot.BotService
       catch (Exception e)
       {
         Console.WriteLine(e);
-        return "Error";
+        return "Error - probably maximum of API calls per day reached.";
       }
     }
   }

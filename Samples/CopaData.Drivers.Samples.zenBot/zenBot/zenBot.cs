@@ -33,7 +33,7 @@ namespace zenBot
       _askBot = new ChatBot(new ZenonQuestions(), JulieVirtualAssistantConnection);
       _tellBot = new ChatBot(new ZenonFacts(), BrainBotConnection);
       //Initialize Conversation
-      var askBotAnswer =_askBot.GetNewAnswer(new ZenBotMessage() { Message = "Hello from zenon!" });
+      var askBotAnswer = _askBot.GetNewAnswer(new ZenBotMessage() { Message = "Hello from zenon!" });
       _tellBot.GetNewAnswer(askBotAnswer);
 
       return Task.CompletedTask;
@@ -52,7 +52,7 @@ namespace zenBot
     {
       if (symbolicAddress == "tellBotLast")
       {
-        _subscriptions.Add(symbolicAddress, _isTellBotLast ? 1:0);
+        _subscriptions.Add(symbolicAddress, _isTellBotLast ? 1 : 0);
       }
       else
       {
@@ -71,6 +71,8 @@ namespace zenBot
 
 
     private bool _isTellBotLast = true;
+    private bool IsTellBotLast => _isTellBotLast;
+    private bool IsAskBotLast => !_isTellBotLast;
 
     public Task ReadAllAsync()
     {
@@ -79,21 +81,26 @@ namespace zenBot
         return Task.CompletedTask;
       }
 
-      if(_subscriptions.ContainsKey("tellBotLast")) _valueCallback.SetValue("tellBotLast",_isTellBotLast?1:0);
+
 
       //only if there are texts requested
       if (_subscriptions.Keys
         .Select(k => k.StartsWith("zenBot"))
         .Any())
-      {      
-        
+      {
+
         //do chit-chat
         if (_isTellBotLast)
         {
-          _askBot.GetNewAnswer(_tellBot.GetLastAnwer());
+          var messageToSend = _tellBot.GetLastAnwer();
+          if (new Random().Next(100) > 80) 
+            messageToSend = new ZenBotMessage() {Message = new ZenonFacts().GetRandomMessage()};
+          _askBot.GetNewAnswer(messageToSend);
         }
         else
         {
+          var messageToSend = _askBot.GetLastAnwer();
+          if (new Random().Next(100) > 80) messageToSend = new ZenBotMessage() {Message = new ZenonQuestions().GetRandomMessage()};
           _tellBot.GetNewAnswer(_askBot.GetLastAnwer());
         }
 
@@ -103,32 +110,33 @@ namespace zenBot
       var keys = _subscriptions.Keys.ToList();
       foreach (var key in keys)
       {
-        if (key == "zenBot_ask_4" && _subscriptions.ContainsKey("zenBot_ask_4")) _subscriptions["zenBot_ask_4"] = _askBot.ZenBotMessageQueue.ReceivedAnswers[_askBot.ZenBotMessageQueue.QueueSize-1]?.Message ?? "";
-        if (key == "zenBot_ask_3" && _subscriptions.ContainsKey("zenBot_ask_3")) _subscriptions["zenBot_ask_3"] = _askBot.ZenBotMessageQueue.ReceivedAnswers[_askBot.ZenBotMessageQueue.QueueSize-2]?.Message ?? "";
-        if (key == "zenBot_ask_2" && _subscriptions.ContainsKey("zenBot_ask_2")) _subscriptions["zenBot_ask_2"] = _askBot.ZenBotMessageQueue.ReceivedAnswers[_askBot.ZenBotMessageQueue.QueueSize-3]?.Message ?? ""; 
-        if (key == "zenBot_ask_1" && _subscriptions.ContainsKey("zenBot_ask_1")) _subscriptions["zenBot_ask_1"] = _askBot.ZenBotMessageQueue.ReceivedAnswers[_askBot.ZenBotMessageQueue.QueueSize-4]?.Message ?? "";
-        
-        if (key == "zenBot_tell_4" && _subscriptions.ContainsKey("zenBot_tell_4")) _subscriptions["zenBot_tell_4"] = _tellBot.ZenBotMessageQueue.ReceivedAnswers[_tellBot.ZenBotMessageQueue.QueueSize-1]?.Message ?? "";
-        if (key == "zenBot_tell_3" && _subscriptions.ContainsKey("zenBot_tell_3")) _subscriptions["zenBot_tell_3"] = _tellBot.ZenBotMessageQueue.ReceivedAnswers[_tellBot.ZenBotMessageQueue.QueueSize-2]?.Message ?? "";
-        if (key == "zenBot_tell_2" && _subscriptions.ContainsKey("zenBot_tell_2")) _subscriptions["zenBot_tell_2"] = _tellBot.ZenBotMessageQueue.ReceivedAnswers[_tellBot.ZenBotMessageQueue.QueueSize-3]?.Message ?? ""; 
-        if (key == "zenBot_tell_1" && _subscriptions.ContainsKey("zenBot_tell_1")) _subscriptions["zenBot_tell_1"] = _tellBot.ZenBotMessageQueue.ReceivedAnswers[_tellBot.ZenBotMessageQueue.QueueSize-4]?.Message ?? "";
+
+        if (key == "zenBot_ask_4" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _tellBot.ZenBotMessageQueue.SentMessages[^1]?.Message ?? "";
+        if (key == "zenBot_ask_3" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _tellBot.ZenBotMessageQueue.SentMessages[^2]?.Message ?? "";
+        if (key == "zenBot_ask_2" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _tellBot.ZenBotMessageQueue.SentMessages[^3]?.Message ?? "";
+        if (key == "zenBot_ask_1" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _tellBot.ZenBotMessageQueue.SentMessages[^4]?.Message ?? "";
+
+        if (key == "zenBot_tell_4" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _askBot.ZenBotMessageQueue.SentMessages[^1]?.Message ?? "";
+        if (key == "zenBot_tell_3" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _askBot.ZenBotMessageQueue.SentMessages[^2]?.Message ?? "";
+        if (key == "zenBot_tell_2" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _askBot.ZenBotMessageQueue.SentMessages[^3]?.Message ?? "";
+        if (key == "zenBot_tell_1" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _askBot.ZenBotMessageQueue.SentMessages[^4]?.Message ?? "";
+
+        if (key == "tellBotLast" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _isTellBotLast ? 1 : 0;
+        if (key == "askBotLast" && _subscriptions.ContainsKey(key)) _subscriptions[key] = _isTellBotLast ? 0 : 1;
       }
 
-      foreach (var subscription in _subscriptions)
+      //set values to zenon
+      foreach (var key in keys)
       {
-        if (_isTellBotLast)
+        if (key.StartsWith("zenBot"))
         {
-          if (_subscriptions.ContainsKey("zenBot_ask_4")) _valueCallback.SetValue("zenBot_ask_4", (string)_subscriptions["zenBot_ask_4"] ?? "", DateTime.Now);
-          if (_subscriptions.ContainsKey("zenBot_ask_3")) _valueCallback.SetValue("zenBot_ask_3", (string)_subscriptions["zenBot_ask_3"] ?? "", DateTime.Now);
-          if (_subscriptions.ContainsKey("zenBot_ask_2")) _valueCallback.SetValue("zenBot_ask_2", (string)_subscriptions["zenBot_ask_2"] ?? "", DateTime.Now);
-          if (_subscriptions.ContainsKey("zenBot_ask_1")) _valueCallback.SetValue("zenBot_ask_1", (string)_subscriptions["zenBot_ask_1"] ?? "", DateTime.Now);
+          _valueCallback.SetValue(key, (string)_subscriptions[key]);
         }
         else
         {
-          if (_subscriptions.ContainsKey("zenBot_tell_4")) _valueCallback.SetValue("zenBot_tell_4", (string)_subscriptions["zenBot_tell_4"] ?? "", DateTime.Now);
-          if (_subscriptions.ContainsKey("zenBot_tell_3")) _valueCallback.SetValue("zenBot_tell_3", (string)_subscriptions["zenBot_tell_3"] ?? "", DateTime.Now);
-          if (_subscriptions.ContainsKey("zenBot_tell_2")) _valueCallback.SetValue("zenBot_tell_2", (string)_subscriptions["zenBot_tell_2"] ?? "", DateTime.Now);
-          if (_subscriptions.ContainsKey("zenBot_tell_1")) _valueCallback.SetValue("zenBot_tell_1", (string)_subscriptions["zenBot_tell_1"] ?? "", DateTime.Now);
+          if (key.Equals("tellBotLast")) _valueCallback.SetValue(key, _isTellBotLast ? 1 : 0);
+          if (key.Equals("askBotLast")) _valueCallback.SetValue(key, _isTellBotLast ? 0 : 1);
+          if (key.Equals("Start")) _valueCallback.SetValue(key, (double)_subscriptions[key]);
         }
       }
 
