@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CopaData.Drivers.Contracts;
 using LibreHardwareMonitor.Hardware;
@@ -32,7 +33,7 @@ namespace SystemMonitor
     {
       if (!subscriptions.ContainsKey(symbolicAddress))
       {
-        subscriptions.Add(symbolicAddress, 10);
+        subscriptions.Add(symbolicAddress, 10.0);
       }
 
       return Task.FromResult(true);
@@ -51,15 +52,20 @@ namespace SystemMonitor
     {
       _logger.Info("Read system information...");
       SystemInfo systemInfo = ReadSystemInfoAsync();
+      var regexCpuNumber = new Regex(@"(?<VariableName>[A-Za-z ]+)(?<CpuNumber>\d+)",RegexOptions.IgnoreCase); //this regex is for identifying the variables. it should match the symbolic address of the variable
 
       var keys = new List<string>(subscriptions.Keys);
 
       foreach (var key in keys)
       {
-        if (key.StartsWith("CPU Core"))
+        if (key.ToLower().StartsWith("cpu core")) //Symbolic address of temperature variable name must start with 'CPU Core' followed by a number to get the temperature for that core. Numbers start with 1. 
         {
-          var currentCpuNumber = key.Substring(9);
-          var coreInfo = systemInfo.CoreInfos.FirstOrDefault(p => p.Name.Contains("#" + currentCpuNumber));
+          var currentCpuNumber = regexCpuNumber.Match(key)?.Groups["CpuNumber"].Value;
+          if (String.IsNullOrEmpty(currentCpuNumber)) {
+            _logger.Error($"CPU number of variable with symbolic address '{key}' not found. E.g. use 'CPU Core 1' as symbolic address for temperature value.");
+            continue; 
+          }
+          var coreInfo = systemInfo.CoreInfos.FirstOrDefault(p => p.Name.Equals("CPU Core #" + currentCpuNumber)); //This is the name we get from systemInfo. it is called: 'CPU Core #1'
           if (coreInfo != null)
           {
             subscriptions[key] = coreInfo.Temp;
@@ -77,7 +83,7 @@ namespace SystemMonitor
 
       foreach (SystemInfo.CoreInfo cInfo in systemInfo.CoreInfos)
       {
-        _logger.Info($"Name: {cInfo.Name} - {cInfo.Load} % - {cInfo.Temp} �C");
+        _logger.Info($"Name: {cInfo.Name} - {cInfo.Load} % - {cInfo.Temp} °C");
       }
       return Task.CompletedTask;
     }

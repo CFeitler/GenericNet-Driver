@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,12 +12,12 @@
 
   <ItemGroup>
     <Reference Include="CopaData.Drivers.Contracts">
-      <HintPath>..\..\..\Program Files (x86)\COPA-DATA\zenon 8.20\DriverFramework\CopaData.Drivers.Contracts.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\COPA-DATA\zenon Software Platform 11\DriverFramework\CopaData.Drivers.Contracts.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if not exist &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_8200)DriverExtensions\SystemMonitor&quot; mkdir &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_8200)DriverExtensions\SystemMonitor&quot;&#xD;&#xA;copy /y &quot;$(TargetDir)*.*&quot; &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_8200)DriverExtensions\SystemMonitor&quot;" />
+    <Exec Command="if not exist &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_11000)DriverExtensions\SystemMonitor&quot; mkdir &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_11000)DriverExtensions\SystemMonitor&quot;&#xD;&#xA;copy /y &quot;$(TargetDir)*.*&quot; &quot;$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\COPA-DATA\DataDir@ProgramDir32_11000)DriverExtensions\SystemMonitor&quot;" />
   </Target>
 
 </Project>
